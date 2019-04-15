@@ -66,7 +66,7 @@ export class PlaceDetailPage implements OnInit {
       .create({
         component: CreateBookingComponent,
         // pass data into child component
-        componentProps: { selectedPlace: this.place }
+        componentProps: { selectedPlace: this.place, selectedMode: mode }
       })
       .then(modalEl => {
         modalEl.present();
