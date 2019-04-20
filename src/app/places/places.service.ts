@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Place } from './place.model';
 import { AuthService } from './../auth/auth.service';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, of } from 'rxjs';
 import { take, map, tap, switchMap } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 interface PlaceData {
@@ -52,17 +52,27 @@ export class PlacesService {
         }
         return places;
       }),
-      tap(places => {
-        this._places.next(places);
-      })
-    );
+        tap(places => {
+          this._places.next(places);
+        })
+      );
   }
 
   getPlace(id: string) {
-    return this.places.pipe(
-      take(1),
-      map(places => {
-        return { ...places.find(p => p.id === id) };
+    return this.http.get<PlaceData>(
+      `https://ionic-angular-course-6327b.firebaseio.com/offered-places/${id}.json`
+    ).pipe(
+      map(placeData => {
+        return new Place(
+          id,
+          placeData.title,
+          placeData.description,
+          placeData.imageUrl,
+          placeData.price,
+          new Date(placeData.availableFrom),
+          new Date(placeData.availableTo),
+          placeData.userId
+        );
       })
     );
   }
@@ -98,6 +108,14 @@ export class PlacesService {
     let updatedPlaces: Place[];
     return this.places.pipe(
       take(1),
+      // this logic makes sure always has a place to update
+      switchMap(places => {
+        if (!places || places.length <= 0) {
+          return this.fetchPlaces();
+        } else {
+          return of(places); // return new observable and emit a value
+        }
+      }),
       switchMap(places => {
         const updatedPlaceIndex = places.findIndex(p1 => p1.id === placeId); // JS array method
         updatedPlaces = [...places];
@@ -112,11 +130,13 @@ export class PlacesService {
           oldPlace.availableTo,
           oldPlace.userId
         );
+        // update remote first
         return this.http.put(
           `https://ionic-angular-course-6327b.firebaseio.com/offered-places/${placeId}.json`,
           { ...updatedPlaces[updatedPlaceIndex], id: null }
         );
       }),
+      // then update local
       tap(() => {
         this._places.next(updatedPlaces);
       })
