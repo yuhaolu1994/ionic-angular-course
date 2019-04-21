@@ -7,6 +7,7 @@ import { CreateBookingComponent } from 'src/app/bookings/create-booking/create-b
 import { Subscription } from 'rxjs';
 import { BookingService } from './../../../bookings/bookings.service';
 import { AuthService } from './../../../auth/auth.service';
+import { MapModalComponent } from './../../../shared/map-modal/map-modal.component';
 
 @Component({
   selector: 'app-place-detail',
@@ -127,6 +128,21 @@ export class PlaceDetailPage implements OnInit, OnDestroy {
             });
         }
       });
+  }
+
+  onShowFullMap() {
+    // inject shared modal component in this module to unlock
+    this.modalCtrl.create({
+      component: MapModalComponent,
+      componentProps: {
+        center: { lat: this.place.location.lat, lng: this.place.location.lng },
+        selectable: false,
+        closeButtonText: 'Close',
+        title: this.place.location.address
+      }
+    }).then(modalEl => {
+      modalEl.present();
+    });
   }
 
   ngOnDestroy() {
