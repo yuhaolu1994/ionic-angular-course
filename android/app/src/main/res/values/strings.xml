@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">ionic-angular-course</string>
+    <string name="title_activity_main">ionic-angular-course</string>
+    <string name="package_name">com.udemycourse.ionicangular</string>
+    <string name="fileprovider_authority">com.udemycourse.ionicangular.fileprovider</string>
+    <string name="custom_url_scheme">com.udemycourse.ionicangular</string>
+</resources>
