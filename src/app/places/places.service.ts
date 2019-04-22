@@ -33,11 +33,17 @@ export class PlacesService {
   ) { }
 
   fetchPlaces() {
-    // angular httpClient returns observable
-    // the key is id in this case, hence use []
-    return this.http
-      .get<{ [key: string]: PlaceData }>('https://ionic-angular-course-6327b.firebaseio.com/offered-places.json')
-      .pipe(map(resData => {
+    return this.authService.token.pipe(
+      take(1),
+      switchMap(token => {
+        // angular httpClient returns observable
+        // the key is id in this case, hence use []
+        return this.http
+          .get<{ [key: string]: PlaceData }>(
+            `https://ionic-angular-course-6327b.firebaseio.com/offered-places.json?auth=${token}`
+          );
+      }),
+      map(resData => {
         const places = [];
         for (const key in resData) {
           if (resData.hasOwnProperty(key)) {
@@ -56,16 +62,20 @@ export class PlacesService {
         }
         return places;
       }),
-        tap(places => {
-          this._places.next(places);
-        })
-      );
+      tap(places => {
+        this._places.next(places);
+      })
+    );
   }
 
   getPlace(id: string) {
-    return this.http.get<PlaceData>(
-      `https://ionic-angular-course-6327b.firebaseio.com/offered-places/${id}.json`
-    ).pipe(
+    return this.authService.token.pipe(
+      take(1),
+      switchMap(token => {
+        return this.http.get<PlaceData>(
+          `https://ionic-angular-course-6327b.firebaseio.com/offered-places/${id}.json?auth=${token}`
+        );
+      }),
       map(placeData => {
         return new Place(
           id,
@@ -85,9 +95,15 @@ export class PlacesService {
   uploadImage(image: File) {
     const uploadData = new FormData();
     uploadData.append('image', image);
-    return this.http.post<{ imageUrl: string, imagePath: string }>(
-      'https://us-central1-ionic-angular-course-6327b.cloudfunctions.net/storeImage',
-      uploadData
+    return this.authService.token.pipe(
+      take(1),
+      switchMap(token => {
+        return this.http.post<{ imageUrl: string, imagePath: string }>(
+          'https://us-central1-ionic-angular-course-6327b.cloudfunctions.net/storeImage',
+          uploadData,
+          { headers: { Authorization: 'Bearer ' + token } }
+        );
+      })
     );
   }
 
@@ -101,35 +117,57 @@ export class PlacesService {
     imageUrl: string
   ) {
     let generatedId: string;
-    const newPlace = new Place(
-      Math.random().toString(),
-      title,
-      description,
-      imageUrl,
-      price,
-      dateFrom,
-      dateTo,
-      this.authService.userId,
-      location
+    let fetchedUserId: string;
+    let newPlace: Place;
+    return this.authService.userId.pipe(
+      take(1),
+      switchMap(userId => {
+        fetchedUserId = userId;
+        return this.authService.token;
+      }),
+      take(1),
+      switchMap(token => {
+        if (!fetchedUserId) {
+          throw new Error('No user found!');
+        }
+        newPlace = new Place(
+          Math.random().toString(),
+          title,
+          description,
+          imageUrl,
+          price,
+          dateFrom,
+          dateTo,
+          fetchedUserId,
+          location
+        );
+        return this.http
+          .post<{ name: string }>(
+            `https://ionic-angular-course-6327b.firebaseio.com/offered-places.json?auth=${token}`,
+            { ...newPlace, id: null }
+          );
+      }),
+      switchMap(resData => {
+        generatedId = resData.name;
+        return this.places; // switchMap will return a new observable
+      }),
+      take(1),
+      tap(places => {
+        newPlace.id = generatedId; // firebase will generate an id
+        this._places.next(places.concat(newPlace)); // use the subject to emit value
+      })
     );
-    return this.http
-      .post<{ name: string }>('https://ionic-angular-course-6327b.firebaseio.com/offered-places.json', { ...newPlace, id: null })
-      .pipe(
-        switchMap(resData => {
-          generatedId = resData.name;
-          return this.places; // switchMap will return a new observable
-        }),
-        take(1),
-        tap(places => {
-          newPlace.id = generatedId; // firebase will generate an id
-          this._places.next(places.concat(newPlace)); // use the subject to emit value
-        })
-      );
   }
 
   updatePlace(placeId: string, title: string, description: string) {
     let updatedPlaces: Place[];
-    return this.places.pipe(
+    let fetchedToken: string;
+    return this.authService.token.pipe(
+      take(1),
+      switchMap(token => {
+        fetchedToken = token;
+        return this.places;
+      }),
       take(1),
       // this logic makes sure always has a place to update
       switchMap(places => {
@@ -156,7 +194,7 @@ export class PlacesService {
         );
         // update remote first
         return this.http.put(
-          `https://ionic-angular-course-6327b.firebaseio.com/offered-places/${placeId}.json`,
+          `https://ionic-angular-course-6327b.firebaseio.com/offered-places/${placeId}.json?auth=${fetchedToken}`,
           { ...updatedPlaces[updatedPlaceIndex], id: null }
         );
       }),
