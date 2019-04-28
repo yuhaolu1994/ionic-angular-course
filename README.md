@@ -15,9 +15,10 @@ These instructions will record all the technical stacks used in this project.
 ## Architecture
 
 ### Auth Module
+![](https://github.com/yuhaolu1994/ionic-angular-course/blob/master/src/art/Auth%20Module.png)
 
 ### Bookings Module
-
-### Places Module
+![](https://github.com/yuhaolu1994/ionic-angular-course/blob/master/src/art/Bookings%20Module.png)
 
 ### Shared Module
+![](https://github.com/yuhaolu1994/ionic-angular-course/blob/master/src/art/Shared%20Module.png)
