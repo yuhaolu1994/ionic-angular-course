@@ -1,4 +1,4 @@
-# FitnessTracker
+# PairBnB
 
 Practice project from [Udemy course](https://www.udemy.com/ionic-2-the-practical-guide-to-building-ios-android-apps). The user can discover places, check place details, discover place offers, check place offer details and add new offer.
 
