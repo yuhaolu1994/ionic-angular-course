@@ -1,4 +1,4 @@
-# FitnessTracker
+# PairBnB
 
 Practice project from [Udemy course](https://www.udemy.com/ionic-2-the-practical-guide-to-building-ios-android-apps). The user can discover places, check place details, discover place offers, check place offer details and add new offer.
 
@@ -15,9 +15,10 @@ These instructions will record all the technical stacks used in this project.
 ## Architecture
 
 ### Auth Module
+![](https://github.com/yuhaolu1994/ionic-angular-course/blob/master/src/art/Auth%20Module.png)
 
 ### Bookings Module
-
-### Places Module
+![](https://github.com/yuhaolu1994/ionic-angular-course/blob/master/src/art/Bookings%20Module.png)
 
 ### Shared Module
+![](https://github.com/yuhaolu1994/ionic-angular-course/blob/master/src/art/Shared%20Module.png)
